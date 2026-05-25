@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lunar Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07040f;--border:#241848;--purple:#9333ea;--violet:#7c3aed;
+  --orange:#f97316;--pink:#ec4899;--text:#ede8f8;--muted:#7a6d9a;--green:#22c55e;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+
+/* ── FLOATING TOPBAR ── */
+#floatBar{
+  position:fixed;top:14px;right:16px;z-index:500;
+  display:flex;align-items:center;gap:8px;
+}
+.fbar-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:50px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;
+  border:1.5px solid var(--border);cursor:pointer;transition:.3s;
+  backdrop-filter:blur(16px);letter-spacing:.2px;
+}
+.fbar-login{background:#110d2099;color:var(--muted)}
+.fbar-login:hover{border-color:#9333ea;color:white}
+.fbar-register{background:linear-gradient(135deg,#7c3aed,#f97316);color:white;border-color:transparent;box-shadow:0 0 16px #7c3aed40}
+.fbar-register:hover{box-shadow:0 0 24px #7c3aed60;transform:translateY(-1px)}
+.fbar-user{
+  background:#110d20cc;border:1.5px solid var(--border);color:var(--text);
+  padding:7px 14px;border-radius:50px;font-family:'Outfit',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:.3s;
+  display:none;align-items:center;gap:7px;backdrop-filter:blur(16px);
+  position:relative;
+}
+.fbar-user:hover{border-color:#9333ea}
+.fbar-user .avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#7c3aed,#ec4899);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;color:white;flex-shrink:0;
+}
+.fbar-admin{
+  background:linear-gradient(135deg,#f97316,#ec4899);
+  color:white;border-color:transparent;
+  padding:7px 14px;border-radius:50px;font-family:'Outfit',sans-serif;
+  font-size:11px;font-weight:800;cursor:pointer;transition:.3s;
+  display:none;align-items:center;gap:6px;backdrop-filter:blur(16px);
+  box-shadow:0 0 14px #f9731640;
+}
+.fbar-admin:hover{box-shadow:0 0 22px #f9731660;transform:translateY(-1px)}
+
+/* user dropdown */
+.user-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:linear-gradient(155deg,#1a1030,#110d20);
+  border:1px solid var(--border);border-radius:16px;
+  padding:8px;min-width:160px;display:none;
+  box-shadow:0 12px 40px #00000060;
+}
+.user-dropdown.open{display:block}
+.user-dropdown a,.user-dropdown button{
+  display:block;width:100%;padding:9px 14px;border-radius:10px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  color:var(--muted);background:none;border:none;cursor:pointer;
+  text-align:left;transition:.2s;text-decoration:none;
+}
+.user-dropdown a:hover,.user-dropdown button:hover{background:#2a1848;color:white}
+.user-dropdown .logout{color:#f87171}
+.user-dropdown .logout:hover{background:#2d1010;color:#f87171}
+
+/* ── PAGE SYSTEM ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── AUTH PAGES ── */
+.auth-page{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:80px 20px 40px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,#4a1a8840,transparent),var(--bg);
+}
+.auth-box{
+  background:linear-gradient(155deg,#170f2d,#0e0b1e);
+  border:1px solid var(--border);border-radius:26px;
+  padding:36px 32px;width:100%;max-width:420px;
+}
+.auth-logo{
+  font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;
+  background:linear-gradient(135deg,#ff6b35,#f72585,#9333ea);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.auth-box h2{font-family:'Outfit',sans-serif;font-size:24px;font-weight:900;color:white;margin-bottom:6px;letter-spacing:-.5px}
+.auth-box p{color:var(--muted);font-size:13px;margin-bottom:28px;line-height:1.6}
+.auth-field{margin-bottom:16px}
+.auth-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:.3px;font-family:'Outfit',sans-serif}
+.auth-field input{
+  width:100%;padding:13px 16px;border-radius:14px;
+  background:#1a1030;border:1.5px solid var(--border);
+  color:var(--text);font-size:14px;font-family:'Space Grotesk',sans-serif;
+  transition:.3s;outline:none;
+}
+.auth-field input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px #7c3aed20}
+.auth-field input::placeholder{color:#4a3d6a}
+.auth-btn{
+  width:100%;padding:14px;border:none;border-radius:50px;
+  background:linear-gradient(135deg,#ff6b35,#f72585,#9333ea);
+  color:white;font-family:'Outfit',sans-serif;font-weight:900;font-size:15px;
+  cursor:pointer;transition:.3s;letter-spacing:.3px;
+  box-shadow:0 0 28px #f7258530;margin-top:8px;
+}
+.auth-btn:hover{transform:scale(1.02);box-shadow:0 0 40px #f7258550}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--muted)}
+.auth-switch a{color:#9333ea;font-weight:700;cursor:pointer;text-decoration:none}
+.auth-switch a:hover{color:#ec4899}
+.auth-notice{
+  background:#1a1030;border:1px solid #2a1848;border-radius:14px;
+  padding:14px 16px;margin-top:16px;font-size:12px;color:var(--muted);
+  line-height:1.6;display:flex;gap:10px;align-items:flex-start;
+}
+.auth-notice span{font-size:16px;flex-shrink:0}
+.auth-error{
+  background:#2d1010;border:1px solid #7f1d1d;border-radius:10px;
+  padding:10px 14px;font-size:12px;color:#f87171;margin-bottom:14px;
+  display:none;font-weight:600;
+}
+.auth-success{
+  background:#0f2a1a;border:1px solid #166534;border-radius:10px;
+  padding:10px 14px;font-size:12px;color:#4ade80;margin-bottom:14px;
+  display:none;font-weight:600;
+}
+
+/* ── PENDING PAGE ── */
+.pending-page{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:80px 20px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,#1a0f4040,transparent),var(--bg);
+}
+.pending-box{
+  background:linear-gradient(155deg,#170f2d,#0e0b1e);
+  border:1px solid var(--border);border-radius:26px;
+  padding:40px 32px;width:100%;max-width:420px;text-align:center;
+}
+.pending-icon{font-size:56px;margin-bottom:16px;display:block}
+.pending-box h2{font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:10px}
+.pending-box p{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:24px}
+.pending-email{
+  background:#1a1030;border:1px solid #2a1848;border-radius:12px;
+  padding:10px 16px;font-size:13px;color:#9333ea;font-weight:700;
+  margin-bottom:20px;
+}
+
+/* ── ADMIN PANEL ── */
+#adminPage{
+  min-height:100vh;background:var(--bg);
+  padding:20px;
+}
+.admin-wrap{max-width:1100px;margin:auto}
+.admin-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;padding:14px 20px;
+  background:linear-gradient(135deg,#170f2d,#0e0b1e);
+  border:1px solid var(--border);border-radius:18px;
+}
+.admin-topbar h1{font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.admin-back{padding:7px 16px;border-radius:50px;background:#1a1030;border:1px solid var(--border);color:var(--muted);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:.2s}
+.admin-back:hover{border-color:#9333ea;color:white}
+
+.admin-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.atab{padding:8px 18px;border-radius:50px;font-size:11px;font-weight:800;border:1.5px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif;letter-spacing:.3px}
+.atab:hover,.atab.active{background:linear-gradient(135deg,#7c3aed,#f97316);color:white;border-color:transparent;box-shadow:0 0 14px #7c3aed40}
+
+.admin-panel{display:none}
+.admin-panel.active{display:block}
+
+/* admin stats */
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.astat{background:linear-gradient(145deg,#141028,#0c091a);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center}
+.astat h3{font-family:'Outfit',sans-serif;font-size:24px;font-weight:900;background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.astat p{color:var(--muted);font-size:11px;margin-top:4px;font-weight:600}
+
+/* admin table */
+.admin-card{background:linear-gradient(145deg,#141028,#0c091a);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:16px}
+.admin-card h3{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:white;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.atable{width:100%;border-collapse:collapse;font-size:12px}
+.atable th{color:var(--muted);font-weight:700;text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'Outfit',sans-serif;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.atable td{padding:10px 10px;border-bottom:1px solid #1a1030;color:var(--text);vertical-align:middle}
+.atable tr:last-child td{border-bottom:none}
+.atable tr:hover td{background:#1a103010}
+.abadge{display:inline-block;padding:3px 9px;border-radius:50px;font-size:9px;font-weight:800;font-family:'Outfit',sans-serif;letter-spacing:.5px}
+.ab-pending{background:#2d1a00;color:#fb923c;border:1px solid #7c3a00}
+.ab-verified{background:#0a2d1a;color:#4ade80;border:1px solid #166534}
+.ab-rejected{background:#2d1010;color:#f87171;border:1px solid #7f1d1d}
+.ab-active{background:#0a1a2d;color:#60a5fa;border:1px solid #1e3a5f}
+.atbtn{padding:5px 12px;border-radius:50px;font-size:10px;font-weight:800;border:none;cursor:pointer;transition:.2s;font-family:'Outfit',sans-serif;margin-right:4px}
+.atbtn-verify{background:linear-gradient(90deg,#059669,#10b981);color:white}
+.atbtn-reject{background:#2d1010;border:1px solid #7f1d1d;color:#f87171}
+.atbtn-edit{background:linear-gradient(90deg,#7c3aed,#9333ea);color:white}
+.atbtn-delete{background:#2d1010;border:1px solid #7f1d1d;color:#f87171}
+.atbtn:hover{opacity:.85;transform:scale(1.05)}
+
+/* product form */
+.admin-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-form .full{grid-column:1/-1}
+.afield label{display:block;font-size:10px;font-weight:800;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;font-family:'Outfit',sans-serif;text-transform:uppercase}
+.afield input,.afield select,.afield textarea{
+  width:100%;padding:10px 14px;border-radius:12px;
+  background:#1a1030;border:1.5px solid var(--border);
+  color:var(--text);font-size:12px;font-family:'Space Grotesk',sans-serif;
+  transition:.3s;outline:none;
+}
+.afield textarea{min-height:80px;resize:vertical}
+.afield input:focus,.afield select:focus,.afield textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px #7c3aed15}
+.afield select option{background:#1a1030}
+.asubmit{
+  padding:11px 24px;border:none;border-radius:50px;
+  background:linear-gradient(135deg,#7c3aed,#f97316);
+  color:white;font-family:'Outfit',sans-serif;font-weight:800;font-size:12px;
+  cursor:pointer;transition:.3s;margin-top:8px;
+}
+.asubmit:hover{box-shadow:0 0 20px #7c3aed50;transform:scale(1.03)}
+
+/* ── MAIN STORE ── */
+header{padding:64px 20px 52px;text-align:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 90% 55% at 50% -5%,#4a1a8855,transparent),radial-gradient(ellipse 45% 40% at 85% 55%,#f9731628,transparent),radial-gradient(ellipse 40% 35% at 10% 70%,#9333ea18,transparent),#07040f;border-bottom:1px solid var(--border)}
+.logo{font-family:'Outfit',sans-serif;font-size:36px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#ff6b35,#f72585,#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
+.subtitle{color:var(--muted);font-size:13px;margin-top:6px;font-weight:400;letter-spacing:.3px}
+.hero{margin-top:38px}
+.hero h1{font-family:'Outfit',sans-serif;font-size:48px;font-weight:900;line-height:1.1;letter-spacing:-2px;color:#fff}
+.hero h1 span{background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{max-width:600px;margin:20px auto 0;color:var(--muted);font-size:14px;line-height:1.8;font-weight:400}
+.hero-buttons{margin-top:30px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.hero-buttons a{text-decoration:none;padding:13px 28px;border-radius:50px;font-size:13px;font-weight:700;transition:.3s;font-family:'Outfit',sans-serif}
+.btn-primary{background:linear-gradient(135deg,#ff6b35,#f72585);color:white;box-shadow:0 0 28px #f7258540}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 0 40px #f7258560}
+.btn-secondary{border:1.5px solid #2a1848;color:var(--muted);background:#110d2080;backdrop-filter:blur(8px)}
+.btn-secondary:hover{border-color:#9333ea;color:white}
+.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:50px}
+.stat{width:135px;background:linear-gradient(145deg,#14102488,#0e0b1c88);border:1px solid var(--border);border-radius:20px;padding:20px 14px;transition:.3s;cursor:default}
+.stat:hover{border-color:#9333ea80;transform:translateY(-4px)}
+.stat h2{font-family:'Outfit',sans-serif;font-size:26px;font-weight:900;background:linear-gradient(135deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat p{color:var(--muted);font-size:11px;margin-top:4px;font-weight:500}
+
+.nav-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:28px 20px 0}
+.nav-tab{padding:9px 20px;border-radius:50px;font-size:12px;font-weight:700;border:1.5px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif}
+.nav-tab:hover,.nav-tab.active{background:linear-gradient(135deg,#7c3aed,#f97316);color:white;border-color:transparent;box-shadow:0 0 20px #7c3aed50}
+
+.container{max-width:1360px;margin:auto;padding:44px 20px}
+.section{margin-bottom:72px}
+.section-title{margin-bottom:24px}
+.section-title h2{font-family:'Outfit',sans-serif;font-size:28px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,#ff6b35,#f72585,#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
+.section-title p{color:var(--muted);font-size:13px;margin-top:5px;font-weight:400}
+
+.slider{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#7c3aed #13101f;-webkit-overflow-scrolling:touch}
+.slider::-webkit-scrollbar{height:4px}
+.slider::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#9333ea,#f97316);border-radius:999px}
+.slider::-webkit-scrollbar-track{background:#110d20;border-radius:999px}
+
+/* cards */
+.card{min-width:220px;max-width:220px;background:linear-gradient(155deg,#141028,#0c091a);border:1px solid var(--border);border-radius:22px;padding:22px 20px;transition:.4s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;flex-shrink:0;cursor:pointer}
+.card::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#9333ea15,transparent);top:-70px;right:-60px;transition:.4s}
+.card:hover{transform:translateY(-9px) scale(1.02);border-color:#9333ea90;box-shadow:0 0 35px #9333ea35,0 24px 60px #00000060}
+.card:hover::before{background:radial-gradient(circle,#f9731630,transparent)}
+.badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:1.2px;margin-bottom:14px;font-family:'Outfit',sans-serif;background:linear-gradient(90deg,#ff6b35,#f72585);color:white}
+.badge.bv{background:linear-gradient(90deg,#7c3aed,#9333ea)}.badge.bg{background:linear-gradient(90deg,#059669,#10b981)}.badge.bo{background:linear-gradient(90deg,#ea580c,#f97316)}.badge.bp{background:linear-gradient(90deg,#db2777,#ec4899)}
+.card h3{font-family:'Outfit',sans-serif;font-size:24px;font-weight:900;letter-spacing:-1px;color:white}
+.core{color:var(--muted);margin-top:4px;font-size:12px;font-weight:500}
+.price{margin-top:16px;font-family:'Outfit',sans-serif;font-size:34px;font-weight:900;letter-spacing:-1px;background:linear-gradient(90deg,#22c55e,#16a34a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.features{margin-top:14px}
+.features div{font-size:12px;margin-bottom:8px;color:#c4b5e8;display:flex;align-items:center;gap:7px;font-weight:500}
+.features div::before{content:'◆';color:#f97316;font-size:8px;flex-shrink:0}
+.card-btn{width:100%;margin-top:18px;padding:12px;border:none;border-radius:50px;background:linear-gradient(90deg,#7c3aed,#f97316);color:white;font-weight:800;font-size:12px;cursor:pointer;transition:.3s;position:relative;overflow:hidden;z-index:1;font-family:'Outfit',sans-serif}
+.card-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#f97316,#7c3aed);opacity:0;transition:.3s;z-index:-1}
+.card-btn:hover::before{opacity:1}
+.card-btn:hover{box-shadow:0 0 22px #7c3aed60}
+
+.plugin-card{min-width:260px;max-width:260px;background:linear-gradient(155deg,#141028,#0c091a);border:1px solid var(--border);border-radius:22px;padding:22px 20px;transition:.4s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;flex-shrink:0;cursor:pointer}
+.plugin-card::before{content:'';position:absolute;inset:0;border-radius:22px;background:linear-gradient(135deg,#f9731608,#9333ea08);opacity:0;transition:.4s}
+.plugin-card:hover{transform:translateY(-8px);border-color:#ec489990;box-shadow:0 0 28px #ec489935,0 18px 50px #00000055}
+.plugin-card:hover::before{opacity:1}
+.plugin-icon{font-size:36px;margin-bottom:12px;display:block}
+.plugin-card h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;line-height:1.25;margin-bottom:6px;color:white;letter-spacing:-.3px}
+.plugin-card .ver{font-size:10px;color:#f97316;margin-bottom:8px;font-weight:700;letter-spacing:.6px;font-family:'Outfit',sans-serif}
+.plugin-card .pdesc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.plugin-price{font-family:'Outfit',sans-serif;font-size:26px;font-weight:900;background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.bundle-card{min-width:300px;max-width:300px;background:linear-gradient(155deg,#160d2a,#0d0919);border:1.5px solid #3a1860;border-radius:22px;padding:24px 20px;transition:.4s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;flex-shrink:0;cursor:pointer}
+.bundle-card::before{content:'';position:absolute;inset:0;border-radius:22px;background:radial-gradient(ellipse at top right,#9333ea18,transparent 60%);pointer-events:none}
+.bundle-card:hover{transform:translateY(-8px);border-color:#9333ea;box-shadow:0 0 40px #9333ea40,0 20px 60px #00000060}
+.bundle-card .btag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:1.2px;margin-bottom:14px;font-family:'Outfit',sans-serif;background:linear-gradient(90deg,#9333ea,#ec4899);color:white}
+.bundle-card h3{font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;color:white;letter-spacing:-.4px;margin-bottom:6px}
+.bundle-card .bsub{color:var(--muted);font-size:12px;margin-bottom:16px}
+.bundle-includes{margin-bottom:16px}
+.bundle-includes .bi{font-size:12px;color:#c4b5e8;margin-bottom:7px;display:flex;align-items:center;gap:7px;font-weight:500}
+.bundle-includes .bi::before{content:'✦';color:#9333ea;font-size:9px;flex-shrink:0}
+.bundle-orig{font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:2px}
+.bundle-price{font-family:'Outfit',sans-serif;font-size:30px;font-weight:900;background:linear-gradient(90deg,#9333ea,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bundle-save{display:inline-block;padding:3px 10px;border-radius:50px;font-size:10px;font-weight:800;background:linear-gradient(90deg,#059669,#10b981);color:white;margin-left:8px;font-family:'Outfit',sans-serif}
+
+.pack-card{min-width:260px;max-width:260px;background:linear-gradient(155deg,#12102a,#0a0818);border:1px solid var(--border);border-radius:22px;padding:22px 20px;transition:.4s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;flex-shrink:0;cursor:pointer}
+.pack-card::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,#ec489918,transparent);bottom:-60px;left:-40px;transition:.4s}
+.pack-card:hover{transform:translateY(-8px);border-color:#ec489990;box-shadow:0 0 30px #ec489930,0 18px 50px #00000055}
+.pack-card:hover::before{background:radial-gradient(circle,#9333ea30,transparent)}
+.pack-icon{font-size:38px;margin-bottom:12px;display:block}
+.pack-card h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:white;margin-bottom:6px}
+.pack-card .pver{font-size:10px;color:#ec4899;margin-bottom:8px;font-weight:700;letter-spacing:.6px;font-family:'Outfit',sans-serif}
+.pack-card .pdes{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.pack-price{font-family:'Outfit',sans-serif;font-size:26px;font-weight:900;background:linear-gradient(90deg,#ec4899,#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.jasa-card{min-width:260px;max-width:260px;background:linear-gradient(155deg,#141028,#0c091a);border:1px solid var(--border);border-radius:22px;padding:22px 20px;transition:.4s cubic-bezier(.175,.885,.32,1.275);position:relative;overflow:hidden;flex-shrink:0;cursor:pointer}
+.jasa-card::before{content:'';position:absolute;inset:0;border-radius:22px;background:linear-gradient(135deg,#7c3aed08,#f9731608);opacity:0;transition:.3s}
+.jasa-card:hover{transform:translateY(-8px);border-color:#7c3aed80;box-shadow:0 0 24px #7c3aed25}
+.jasa-card:hover::before{opacity:1}
+.jasa-card h3{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;margin-bottom:6px;background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.jasa-card p{color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:14px}
+.jasa-price{font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;background:linear-gradient(90deg,#7c3aed,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.map-card{min-width:280px;max-width:280px;background:linear-gradient(155deg,#141028,#0c091a);border:1px solid var(--border);border-radius:22px;overflow:hidden;transition:.4s cubic-bezier(.175,.885,.32,1.275);cursor:pointer;flex-shrink:0}
+.map-card:hover{transform:translateY(-8px);border-color:#9333ea90;box-shadow:0 0 30px #9333ea35,0 18px 50px #00000060}
+.map-thumb{width:100%;height:140px;background:linear-gradient(135deg,#1a0935,#2d1260,#1a0535);display:flex;align-items:center;justify-content:center;font-size:56px;position:relative;overflow:hidden}
+.map-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,#141028)}
+.map-info{padding:16px}
+.map-tag{display:inline-block;padding:3px 10px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:.8px;margin-bottom:8px;background:linear-gradient(90deg,#7c3aed,#9333ea);color:white;font-family:'Outfit',sans-serif}
+.map-info h3{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;margin-bottom:5px;color:white}
+.map-info .mdesc{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.map-price{font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;background:linear-gradient(90deg,#9333ea,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:#00000095;backdrop-filter:blur(14px);z-index:900;display:none;align-items:center;justify-content:center;padding:16px;opacity:0;transition:.3s}
+.modal-overlay.open{display:flex;opacity:1}
+.modal-overlay.closing{opacity:0}
+.modal{background:linear-gradient(155deg,#170f2d,#0e0b1e);border:1px solid var(--border);border-radius:26px;max-width:540px;width:100%;max-height:92vh;overflow-y:auto;padding:30px;position:relative;transform:scale(.86) translateY(32px);transition:.38s cubic-bezier(.175,.885,.32,1.275);scrollbar-width:thin;scrollbar-color:#7c3aed #13101f}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-overlay.closing .modal{transform:scale(.86) translateY(32px)}
+.modal-close{position:absolute;top:18px;right:18px;background:#1e1535;border:1px solid var(--border);border-radius:50%;width:36px;height:36px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.2s;font-family:'Outfit',sans-serif}
+.modal-close:hover{background:#2a1f4a;color:white;border-color:#9333ea}
+.modal-icon{font-size:50px;margin-bottom:12px;display:block}
+.modal-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:10px;font-weight:800;letter-spacing:1.2px;margin-bottom:12px;background:linear-gradient(90deg,#7c3aed,#ec4899);color:white;font-family:'Outfit',sans-serif}
+.modal h2{font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;line-height:1.2;margin-bottom:10px;color:white;letter-spacing:-.5px}
+.modal-price{font-family:'Outfit',sans-serif;font-size:38px;font-weight:900;letter-spacing:-1.5px;background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:22px}
+.modal-section{margin-bottom:18px}
+.modal-section h4{font-family:'Outfit',sans-serif;font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase}
+.modal-section p{color:var(--text);font-size:13px;line-height:1.8}
+.modal-tags{display:flex;flex-wrap:wrap;gap:7px}
+.modal-tag{padding:5px 13px;border-radius:50px;font-size:11px;background:#1a1030;border:1px solid #241848;color:#c4b5e8;font-weight:600;font-family:'Outfit',sans-serif}
+.modal-feats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.modal-feat{background:#140f28;border:1px solid #241848;border-radius:12px;padding:10px 12px;font-size:11px;color:#c4b5e8;display:flex;align-items:center;gap:7px;font-weight:600}
+.modal-feat::before{content:'◆';color:#f97316;font-size:8px;flex-shrink:0}
+.modal-divider{height:1px;background:linear-gradient(90deg,transparent,#2a1848,transparent);margin:22px 0}
+.modal-buy{width:100%;padding:16px;border:none;border-radius:50px;background:linear-gradient(135deg,#ff6b35,#f72585,#9333ea);color:white;font-family:'Outfit',sans-serif;font-weight:900;font-size:15px;cursor:pointer;transition:.3s;box-shadow:0 0 32px #f7258540;margin-top:4px}
+.modal-buy:hover{transform:scale(1.03);box-shadow:0 0 50px #f7258560}
+.modal-buy:active{transform:scale(.97)}
+
+footer{padding:30px 20px;text-align:center;color:var(--muted);border-top:1px solid var(--border);font-size:12px;background:linear-gradient(to top,#0d0820,transparent);font-weight:500}
+footer span{background:linear-gradient(90deg,#ff6b35,#f72585);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-family:'Outfit',sans-serif}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .7s ease both}.fu2{animation:fadeUp .7s .15s ease both}.fu3{animation:fadeUp .7s .3s ease both}
+.scroll-fade{opacity:0;transform:translateY(24px);transition:.65s ease}
+.scroll-fade.visible{opacity:1;transform:translateY(0)}
+.rpl{position:relative;overflow:hidden}
+.rpl .rp{position:absolute;border-radius:50%;background:#ffffff28;transform:scale(0);animation:ripple .65s linear;pointer-events:none}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+@media(max-width:768px){.hero h1{font-size:34px;letter-spacing:-1.5px}.logo{font-size:28px}.modal{padding:22px}.modal h2{font-size:18px}.modal-feats{grid-template-columns:1fr}.modal-price{font-size:30px}.admin-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- FLOATING AUTH BAR -->
+<div id="floatBar">
+  <button class="fbar-btn fbar-login" id="btnLogin" onclick="showPage('loginPage')">🔑 Login</button>
+  <button class="fbar-btn fbar-register" id="btnRegister" onclick="showPage('registerPage')">✨ Register</button>
+  <div class="fbar-admin" id="btnAdmin" onclick="showPage('adminPage')">⚙ Admin Panel</div>
+  <div class="fbar-user" id="btnUser" onclick="toggleUserMenu()">
+    <div class="avatar" id="userAvatar">?</div>
+    <span id="userName">User</span>
+    <div class="user-dropdown" id="userDropdown">
+      <a onclick="showPage('storePage');closeUserMenu()">🏠 Toko</a>
+      <button class="logout" onclick="logout()">🚪 Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div class="page" id="loginPage">
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="auth-logo">🌙 Lunar Store</div>
+      <h2>Selamat Datang!</h2>
+      <p>Login ke akun kamu untuk mulai berbelanja.</p>
+      <div class="auth-error" id="loginError"></div>
+      <div class="auth-success" id="loginSuccess"></div>
+      <div class="auth-field"><label>EMAIL</label><input type="email" id="loginEmail" placeholder="email@example.com"></div>
+      <div class="auth-field"><label>PASSWORD</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+      <button class="auth-btn rpl" onclick="doLogin()">Login →</button>
+      <div class="auth-switch">Belum punya akun? <a onclick="showPage('registerPage')">Daftar sekarang</a></div>
+      <div class="auth-switch" style="margin-top:8px"><a onclick="showPage('storePage')" style="color:var(--muted);font-weight:500">← Kembali ke toko</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTER PAGE ══ -->
+<div class="page" id="registerPage">
+  <div class="auth-page">
+    <div class="auth-box">
+      <div class="auth-logo">🌙 Lunar Store</div>
+      <h2>Buat Akun</h2>
+      <p>Daftarkan akun kamu. Admin akan memverifikasi dalam 1x24 jam.</p>
+      <div class="auth-error" id="regError"></div>
+      <div class="auth-success" id="regSuccess"></div>
+      <div class="auth-field"><label>NAMA</label><input type="text" id="regName" placeholder="Nama lengkap kamu"></div>
+      <div class="auth-field"><label>EMAIL</label><input type="email" id="regEmail" placeholder="email@example.com"></div>
+      <div class="auth-field"><label>PASSWORD</label><input type="password" id="regPass" placeholder="Min 6 karakter"></div>
+      <div class="auth-field"><label>KONFIRMASI PASSWORD</label><input type="password" id="regPass2" placeholder="Ulangi password"></div>
+      <button class="auth-btn rpl" onclick="doRegister()">Daftar →</button>
+      <div class="auth-switch">Sudah punya akun? <a onclick="showPage('loginPage')">Login di sini</a></div>
+      <div class="auth-switch" style="margin-top:8px"><a onclick="showPage('storePage')" style="color:var(--muted);font-weight:500">← Kembali ke toko</a></div>
+      <div class="auth-notice"><span>⏳</span><span>Setelah daftar, akun kamu akan menunggu verifikasi dari admin. Kamu akan bisa login setelah diverifikasi.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PENDING PAGE ══ -->
+<div class="page" id="pendingPage">
+  <div class="pending-page">
+    <div class="pending-box">
+      <span class="pending-icon">⏳</span>
+      <h2>Menunggu Verifikasi</h2>
+      <p>Akun kamu sudah terdaftar dan sedang menunggu verifikasi dari admin. Biasanya membutuhkan waktu 1x24 jam.</p>
+      <div class="pending-email" id="pendingEmailShow"></div>
+      <p style="font-size:12px;color:var(--muted)">Silakan cek kembali setelah admin memverifikasi akunmu.</p>
+      <button class="auth-btn rpl" style="margin-top:20px" onclick="logout()">🚪 Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN PANEL PAGE ══ -->
+<div class="page" id="adminPage">
+  <div id="adminPageInner" style="padding:20px 16px;padding-top:70px">
+    <div class="admin-wrap">
+      <div class="admin-topbar">
+        <h1>⚙ Admin Panel</h1>
+        <button class="admin-back" onclick="showPage('storePage')">← Kembali ke Toko</button>
+      </div>
+
+      <div class="admin-stats" id="adminStats"></div>
+
+      <div class="admin-tabs">
+        <button class="atab active" onclick="switchAdminTab('tabUsers',this)">👥 Users</button>
+        <button class="atab" onclick="switchAdminTab('tabProducts',this)">📦 Products</button>
+        <button class="atab" onclick="switchAdminTab('tabAddProduct',this)">➕ Tambah Produk</button>
+      </div>
+
+      <!-- USERS TAB -->
+      <div class="admin-panel active" id="tabUsers">
+        <div class="admin-card">
+          <h3>👥 Daftar User</h3>
+          <div style="overflow-x:auto">
+            <table class="atable" id="usersTable">
+              <thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Daftar</th><th>Aksi</th></tr></thead>
+              <tbody id="usersTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS TAB -->
+      <div class="admin-panel" id="tabProducts">
+        <div class="admin-card">
+          <h3>📦 Daftar Produk Custom</h3>
+          <div style="overflow-x:auto">
+            <table class="atable">
+              <thead><tr><th>Nama</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="productsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADD PRODUCT TAB -->
+      <div class="admin-panel" id="tabAddProduct">
+        <div class="admin-card">
+          <h3>➕ Tambah Produk Baru</h3>
+          <div class="admin-form" id="addProductForm">
+            <div class="afield"><label>Nama Produk</label><input type="text" id="pName" placeholder="Nama produk..."></div>
+            <div class="afield"><label>Harga</label><input type="text" id="pPrice" placeholder="Contoh: 35K"></div>
+            <div class="afield full"><label>Kategori</label>
+              <select id="pCat">
+                <option value="plugin">Premium Plugin</option>
+                <option value="pack">Pack</option>
+                <option value="map">Map</option>
+                <option value="jasa">Jasa Setup</option>
+                <option value="bundle">Bundle</option>
+              </select>
+            </div>
+            <div class="afield full"><label>Deskripsi</label><textarea id="pDesc" placeholder="Deskripsi produk..."></textarea></div>
+            <div class="afield"><label>Versi / Info</label><input type="text" id="pVersion" placeholder="Contoh: 1.8 - 1.21"></div>
+            <div class="afield"><label>Icon / Emoji</label><input type="text" id="pIcon" placeholder="Contoh: 🔌"></div>
+            <div class="afield full"><label>Fitur (pisah dengan koma)</label><input type="text" id="pFeats" placeholder="Fitur 1, Fitur 2, Fitur 3..."></div>
+            <div class="afield full"><label>Tags (pisah dengan koma)</label><input type="text" id="pTags" placeholder="Tag1, Tag2, Tag3..."></div>
+            <div class="afield full" style="display:flex;gap:10px;align-items:center">
+              <button class="asubmit rpl" onclick="addProduct()">➕ Tambah Produk</button>
+              <div id="addProductMsg" style="font-size:12px;color:#4ade80;display:none">✓ Produk berhasil ditambahkan!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EDIT FORM (hidden) -->
+        <div class="admin-card" id="editProductCard" style="display:none">
+          <h3>✏️ Edit Produk</h3>
+          <div class="admin-form">
+            <input type="hidden" id="editPid">
+            <div class="afield"><label>Nama Produk</label><input type="text" id="editPName"></div>
+            <div class="afield"><label>Harga</label><input type="text" id="editPPrice"></div>
+            <div class="afield full"><label>Deskripsi</label><textarea id="editPDesc"></textarea></div>
+            <div class="afield"><label>Versi / Info</label><input type="text" id="editPVersion"></div>
+            <div class="afield"><label>Icon / Emoji</label><input type="text" id="editPIcon"></div>
+            <div class="afield full"><label>Fitur (pisah koma)</label><input type="text" id="editPFeats"></div>
+            <div class="afield full"><label>Tags (pisah koma)</label><input type="text" id="editPTags"></div>
+            <div class="afield full" style="display:flex;gap:10px">
+              <button class="asubmit rpl" onclick="saveEdit()">💾 Simpan Perubahan</button>
+              <button class="asubmit rpl" style="background:linear-gradient(135deg,#374151,#1f2937)" onclick="cancelEdit()">✕ Batal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ STORE PAGE ══ -->
+<div class="page active" id="storePage">
+
+<header>
+  <div class="logo fu">🌙 Lunar Store</div>
+  <div class="subtitle fu2">Premium Minecraft Hosting & Digital Products</div>
+  <div class="hero fu3">
+    <h1>Powerful Hosting For<br><span>Minecraft Server</span></h1>
+    <p>Hosting modern AMD EPYC, NVMe SSD, anti lag, support crossplay Java-Bedrock, dan performa stabil untuk server kecil maupun besar.</p>
+    <div class="hero-buttons">
+      <a href="#hosting" class="btn-primary rpl">🚀 Lihat Paket</a>
+      <a href="https://wa.me/62895378259160" class="btn-secondary" target="_blank">💬 Contact Admin</a>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><h2>99.9%</h2><p>Server Uptime</p></div>
+    <div class="stat"><h2>24/7</h2><p>Support Active</p></div>
+    <div class="stat"><h2>NVMe</h2><p>Fast SSD</p></div>
+    <div class="stat"><h2>AMD</h2><p>EPYC CPU</p></div>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active rpl" onclick="goTo('#hosting')">🖥 Paper</button>
+  <button class="nav-tab rpl" onclick="goTo('#bedrock')">📱 Bedrock</button>
+  <button class="nav-tab rpl" onclick="goTo('#bundle')">📦 Bundle</button>
+  <button class="nav-tab rpl" onclick="goTo('#plugins')">🔌 Plugin</button>
+  <button class="nav-tab rpl" onclick="goTo('#pack')">🎁 Pack</button>
+  <button class="nav-tab rpl" onclick="goTo('#maps')">🗺 Map</button>
+  <button class="nav-tab rpl" onclick="goTo('#services')">⚙ Jasa</button>
+</div>
+
+<div class="container">
+  <section class="section scroll-fade" id="hosting">
+    <div class="section-title"><h2>🖥 Hosting Paper / Crossplay</h2><p>Java + Bedrock crossplay · Geser untuk semua paket</p></div>
+    <div class="slider" id="paperSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="bedrock">
+    <div class="section-title"><h2>📱 Hosting Vanilla Bedrock</h2><p>Ringan & stabil · Android · iOS · Windows · Console</p></div>
+    <div class="slider" id="bedrockSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="bundle">
+    <div class="section-title"><h2>📦 Bundle</h2><p>Hosting + Plugin Premium — harga lebih hemat</p></div>
+    <div class="slider" id="bundleSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="plugins">
+    <div class="section-title"><h2>🔌 Premium Plugin</h2><p>Geser ke kanan · klik untuk detail & beli</p></div>
+    <div class="slider" id="pluginSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="pack">
+    <div class="section-title"><h2>🎁 Pack</h2><p>Resource pack, rank pack, dan GUI pack siap pakai</p></div>
+    <div class="slider" id="packSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="maps">
+    <div class="section-title"><h2>🗺 Map</h2><p>Map premium siap pakai untuk server Minecraft kamu</p></div>
+    <div class="slider" id="mapSlider"></div>
+  </section>
+  <section class="section scroll-fade" id="services">
+    <div class="section-title"><h2>⚙ Jasa Setup & Optimasi</h2><p>Klik untuk order via WhatsApp</p></div>
+    <div class="slider" id="jasaSlider"></div>
+  </section>
+  <!-- CUSTOM PRODUCTS (dari admin) -->
+  <section class="section scroll-fade" id="customSection" style="display:none">
+    <div class="section-title"><h2>🌟 Produk Lainnya</h2><p>Produk tambahan dari admin</p></div>
+    <div class="slider" id="customSlider"></div>
+  </section>
+</div>
+
+<footer>© 2026 <span>Lunar Store</span> — All Rights Reserved · Minecraft Hosting Indonesia</footer>
+</div><!-- /storePage -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <span class="modal-icon" id="mIcon"></span>
+    <div class="modal-badge" id="mBadge"></div>
+    <h2 id="mTitle"></h2>
+    <div class="modal-price" id="mPrice"></div>
+    <div class="modal-section"><h4>📋 Deskripsi</h4><p id="mDesc"></p></div>
+    <div class="modal-section"><h4>ℹ️ Info & Versi</h4><div class="modal-tags" id="mTags"></div></div>
+    <div class="modal-section"><h4>✨ Fitur Utama</h4><div class="modal-feats" id="mFeats"></div></div>
+    <div class="modal-divider"></div>
+    <button class="modal-buy rpl" onclick="buyNow()">💬 Buy Now via WhatsApp</button>
+  </div>
+</div>
+
+<script>
+const WA='62895378259160';
+let currentWAText='';
+
+// ══ STORAGE ══
+function getUsers(){return JSON.parse(localStorage.getItem('ls_users')||'[]')}
+function saveUsers(u){localStorage.setItem('ls_users',JSON.stringify(u))}
+function getProducts(){return JSON.parse(localStorage.getItem('ls_products')||'[]')}
+function saveProducts(p){localStorage.setItem('ls_products',JSON.stringify(p))}
+function getSession(){return JSON.parse(localStorage.getItem('ls_session')||'null')}
+function saveSession(s){localStorage.setItem('ls_session',JSON.stringify(s))}
+function clearSession(){localStorage.removeItem('ls_session')}
+
+// seed admin
+(function(){
+  const users=getUsers();
+  if(!users.find(u=>u.email==='easterdayvhan@gmail.com')){
+    users.push({id:'admin',name:'Admin',email:'easterdayvhan@gmail.com',password:'vhandays',role:'admin',status:'verified',registered:new Date().toLocaleDateString('id')});
+    saveUsers(users);
+  }
+})();
+
+// ══ PAGE SYSTEM ══
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  updateFloatBar();
+  if(id==='adminPage') renderAdmin();
+}
+
+// ══ FLOAT BAR ══
+function updateFloatBar(){
+  const s=getSession();
+  const bl=document.getElementById('btnLogin');
+  const br=document.getElementById('btnRegister');
+  const bu=document.getElementById('btnUser');
+  const ba=document.getElementById('btnAdmin');
+  if(s){
+    bl.style.display='none';br.style.display='none';
+    bu.style.display='flex';
+    document.getElementById('userName').textContent=s.name.split(' ')[0];
+    document.getElementById('userAvatar').textContent=s.name[0].toUpperCase();
+    if(s.role==='admin') ba.style.display='flex'; else ba.style.display='none';
+  } else {
+    bl.style.display='flex';br.style.display='flex';
+    bu.style.display='none';ba.style.display='none';
+  }
+}
+function toggleUserMenu(){
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+function closeUserMenu(){
+  document.getElementById('userDropdown').classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  if(!document.getElementById('btnUser').contains(e.target)) closeUserMenu();
+});
+
+// ══ AUTH ══
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block'}
+function showOk(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block'}
+function hideMsg(...ids){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'})}
+
+function doLogin(){
+  hideMsg('loginError','loginSuccess');
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass){showErr('loginError','Isi email dan password dulu!');return}
+  const users=getUsers();
+  const user=users.find(u=>u.email===email&&u.password===pass);
+  if(!user){showErr('loginError','Email atau password salah.');return}
+  if(user.status==='pending'){
+    saveSession({id:user.id,name:user.name,email:user.email,role:user.role,status:'pending'});
+    document.getElementById('pendingEmailShow').textContent=user.email;
+    showPage('pendingPage');return;
+  }
+  if(user.status==='rejected'){showErr('loginError','Akun kamu ditolak oleh admin.');return}
+  saveSession({id:user.id,name:user.name,email:user.email,role:user.role,status:user.status});
+  if(user.role==='admin') showPage('adminPage');
+  else showPage('storePage');
+}
+
+function doRegister(){
+  hideMsg('regError','regSuccess');
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pass=document.getElementById('regPass').value;
+  const pass2=document.getElementById('regPass2').value;
+  if(!name||!email||!pass||!pass2){showErr('regError','Semua field wajib diisi!');return}
+  if(pass.length<6){showErr('regError','Password minimal 6 karakter.');return}
+  if(pass!==pass2){showErr('regError','Konfirmasi password tidak cocok.');return}
+  const users=getUsers();
+  if(users.find(u=>u.email===email)){showErr('regError','Email sudah terdaftar.');return}
+  const newUser={id:'u'+Date.now(),name,email,password:pass,role:'user',status:'pending',registered:new Date().toLocaleDateString('id')};
+  users.push(newUser);saveUsers(users);
+  showOk('regSuccess','Pendaftaran berhasil! Menunggu verifikasi admin.');
+  setTimeout(()=>{
+    document.getElementById('pendingEmailShow').textContent=email;
+    saveSession({id:newUser.id,name:newUser.name,email:newUser.email,role:'user',status:'pending'});
+    showPage('pendingPage');
+  },1500);
+}
+
+function logout(){
+  clearSession();
+  showPage('storePage');
+}
+
+// ══ ADMIN ══
+function switchAdminTab(id,btn){
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function renderAdmin(){
+  const users=getUsers().filter(u=>u.role!=='admin');
+  const products=getProducts();
+  // stats
+  document.getElementById('adminStats').innerHTML=`
+    <div class="astat"><h3>${users.length}</h3><p>Total User</p></div>
+    <div class="astat"><h3>${users.filter(u=>u.status==='pending').length}</h3><p>Menunggu Verifikasi</p></div>
+    <div class="astat"><h3>${users.filter(u=>u.status==='verified').length}</h3><p>Terverifikasi</p></div>
+    <div class="astat"><h3>${products.length}</h3><p>Custom Produk</p></div>
+  `;
+  // users table
+  document.getElementById('usersTbody').innerHTML=users.length?users.map(u=>`
+    <tr>
+      <td><strong style="color:white">${u.name}</strong></td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td><span class="abadge ${u.status==='pending'?'ab-pending':u.status==='verified'?'ab-verified':'ab-rejected'}">${u.status==='pending'?'Pending':u.status==='verified'?'Verified':'Rejected'}</span></td>
+      <td style="color:var(--muted)">${u.registered}</td>
+      <td>
+        ${u.status==='pending'?`<button class="atbtn atbtn-verify" onclick="verifyUser('${u.id}')">✓ Verifikasi</button><button class="atbtn atbtn-reject" onclick="rejectUser('${u.id}')">✕ Tolak</button>`:''}
+        ${u.status==='verified'?`<button class="atbtn atbtn-reject" onclick="rejectUser('${u.id}')">Cabut</button>`:''}
+        ${u.status==='rejected'?`<button class="atbtn atbtn-verify" onclick="verifyUser('${u.id}')">Approve</button>`:''}
+      </td>
+    </tr>`).join(''):`<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Belum ada user terdaftar</td></tr>`;
+  // products table
+  document.getElementById('productsTbody').innerHTML=products.length?products.map(p=>`
+    <tr>
+      <td><strong style="color:white">${p.icon} ${p.name}</strong></td>
+      <td><span class="abadge ab-active">${p.category}</span></td>
+      <td style="color:#4ade80;font-weight:700">Rp ${p.price}</td>
+      <td><span class="abadge ab-verified">Aktif</span></td>
+      <td>
+        <button class="atbtn atbtn-edit" onclick="editProduct('${p.id}')">✏ Edit</button>
+        <button class="atbtn atbtn-delete" onclick="deleteProduct('${p.id}')">🗑</button>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Belum ada produk custom</td></tr>`;
+  renderCustomProducts();
+}
+
+function verifyUser(id){
+  const users=getUsers();
+  const u=users.find(x=>x.id===id);
+  if(u){u.status='verified';saveUsers(users);renderAdmin();}
+}
+function rejectUser(id){
+  const users=getUsers();
+  const u=users.find(x=>x.id===id);
+  if(u){u.status='rejected';saveUsers(users);renderAdmin();}
+}
+
+function addProduct(){
+  const name=document.getElementById('pName').value.trim();
+  const price=document.getElementById('pPrice').value.trim();
+  const cat=document.getElementById('pCat').value;
+  const desc=document.getElementById('pDesc').value.trim();
+  const version=document.getElementById('pVersion').value.trim();
+  const icon=document.getElementById('pIcon').value.trim()||'📦';
+  const feats=document.getElementById('pFeats').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const tags=document.getElementById('pTags').value.split(',').map(x=>x.trim()).filter(Boolean);
+  if(!name||!price||!desc){alert('Nama, harga, dan deskripsi wajib diisi!');return}
+  const products=getProducts();
+  products.push({id:'p'+Date.now(),name,price,category:cat,desc,version,icon,feats,tags});
+  saveProducts(products);
+  document.getElementById('pName').value='';document.getElementById('pPrice').value='';
+  document.getElementById('pDesc').value='';document.getElementById('pVersion').value='';
+  document.getElementById('pIcon').value='';document.getElementById('pFeats').value='';
+  document.getElementById('pTags').value='';
+  const msg=document.getElementById('addProductMsg');msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2500);
+  renderAdmin();
+}
+function deleteProduct(id){
+  if(!confirm('Hapus produk ini?'))return;
+  saveProducts(getProducts().filter(p=>p.id!==id));renderAdmin();
+}
+function editProduct(id){
+  const p=getProducts().find(x=>x.id===id);if(!p)return;
+  document.getElementById('editPid').value=p.id;
+  document.getElementById('editPName').value=p.name;
+  document.getElementById('editPPrice').value=p.price;
+  document.getElementById('editPDesc').value=p.desc;
+  document.getElementById('editPVersion').value=p.version||'';
+  document.getElementById('editPIcon').value=p.icon||'';
+  document.getElementById('editPFeats').value=(p.feats||[]).join(', ');
+  document.getElementById('editPTags').value=(p.tags||[]).join(', ');
+  document.getElementById('editProductCard').style.display='block';
+  switchAdminTab('tabAddProduct',document.querySelectorAll('.atab')[2]);
+  document.getElementById('editProductCard').scrollIntoView({behavior:'smooth'});
+}
+function saveEdit(){
+  const id=document.getElementById('editPid').value;
+  const products=getProducts();
+  const p=products.find(x=>x.id===id);if(!p)return;
+  p.name=document.getElementById('editPName').value.trim();
+  p.price=document.getElementById('editPPrice').value.trim();
+  p.desc=document.getElementById('editPDesc').value.trim();
+  p.version=document.getElementById('editPVersion').value.trim();
+  p.icon=document.getElementById('editPIcon').value.trim()||'📦';
+  p.feats=document.getElementById('editPFeats').value.split(',').map(x=>x.trim()).filter(Boolean);
+  p.tags=document.getElementById('editPTags').value.split(',').map(x=>x.trim()).filter(Boolean);
+  saveProducts(products);
+  document.getElementById('editProductCard').style.display='none';
+  renderAdmin();alert('Produk berhasil diperbarui!');
+}
+function cancelEdit(){document.getElementById('editProductCard').style.display='none'}
+
+function renderCustomProducts(){
+  const products=getProducts();
+  const sec=document.getElementById('customSection');
+  const sl=document.getElementById('customSlider');
+  if(!products.length){sec.style.display='none';return}
+  sec.style.display='block';
+  sl.innerHTML=products.map((p,i)=>`
+    <div class="plugin-card" onclick="openCustom(${i})">
+      <span class="plugin-icon">${p.icon}</span>
+      <div class="ver">🏷 ${p.version||p.category}</div>
+      <h3>${p.name}</h3>
+      <p class="pdesc">${p.desc.slice(0,72)}...</p>
+      <div class="plugin-price">Rp ${p.price}</div>
+      <button class="card-btn rpl" style="margin-top:14px" onclick="event.stopPropagation();openCustom(${i})">Detail & Buy →</button>
+    </div>`).join('');
+}
+function openCustom(i){
+  const p=getProducts()[i];
+  buildModal({icon:p.icon,badge:p.category.toUpperCase(),title:p.name,price:p.price,desc:p.desc,tags:p.tags||[],feats:p.feats||[]});
+}
+
+// ══ STORE DATA ══
+const paperPlans=[
+  {ram:'1GB',core:'1',price:'20K',badge:'STARTER',bc:''},
+  {ram:'2GB',core:'1',price:'30K',badge:'CHEAP',bc:''},
+  {ram:'3GB',core:'2',price:'40K',badge:'BASIC',bc:'bv'},
+  {ram:'4GB',core:'2',price:'60K',badge:'POPULAR',bc:'bo'},
+  {ram:'5GB',core:'3',price:'80K',badge:'PLUS',bc:''},
+  {ram:'6GB',core:'4',price:'110K',badge:'BEST',bc:'bg'},
+  {ram:'7GB',core:'4',price:'130K',badge:'PRO',bc:'bv'},
+  {ram:'8GB',core:'4',price:'140K',badge:'GAMING',bc:''},
+  {ram:'10GB',core:'5',price:'165K',badge:'PREMIUM',bc:'bo',x:1},
+  {ram:'12GB',core:'6',price:'195K',badge:'EXTREME',bc:'bg',x:1},
+  {ram:'14GB',core:'7',price:'230K',badge:'ULTIMATE',bc:'bv',x:1},
+  {ram:'16GB',core:'8',price:'275K',badge:'MAX',bc:'',x:1},
+];
+const bedrockPlans=[
+  {ram:'1GB',core:'1',price:'15K',badge:'STARTER',bc:'bg'},
+  {ram:'2GB',core:'1',price:'25K',badge:'CHEAP',bc:'bg'},
+  {ram:'3GB',core:'2',price:'40K',badge:'BASIC',bc:'bg'},
+  {ram:'4GB',core:'2',price:'60K',badge:'POPULAR',bc:'bg'},
+  {ram:'5GB',core:'3',price:'75K',badge:'PLUS',bc:'bg'},
+  {ram:'6GB',core:'4',price:'90K',badge:'BEST',bc:'bg'},
+  {ram:'7GB',core:'4',price:'115K',badge:'PRO',bc:'bg'},
+  {ram:'8GB',core:'4',price:'135K',badge:'GAMING',bc:'bg'},
+  {ram:'10GB',core:'5',price:'160K',badge:'PREMIUM',bc:'bg',x:1},
+  {ram:'12GB',core:'6',price:'185K',badge:'EXTREME',bc:'bg',x:1},
+];
+const plugins=[
+  {icon:'⚙',name:'CMI',badge:'ESSENTIALS',version:'1.8 - 26.x',price:'35K',desc:'Plugin essentials paling lengkap. 300+ commands, economy, MySQL/SQLite, portals, insane kits, dan jauh lebih banyak lagi.',tags:['Spigot','Paper','MySQL','SQLite','Economy'],feats:['300+ Commands','Economy System','MySQL/SQLite','Portals','Custom Kits','Warp & Home','AFK System','Jail System']},
+  {icon:'🏡',name:'Lands',badge:'LAND CLAIM',version:'1.17 - 26.x',price:'25K',desc:'Plugin land claim modern dengan GUI management, grief prevention, nations, wars, dan support penuh 1.26.x.',tags:['Land Claim','Nations','Wars','GUI'],feats:['GUI Management','Grief Prevention','Nation System','Wars','Taxes','Rentable Lands','Map Integration','Role Permissions']},
+  {icon:'💬',name:'LPC Pro',badge:'CHAT',version:'1.17 - 26.1.2',price:'10K',desc:'Chat plugin premium dengan AI moderation, MiniMessage native, dan fitur-fitur lengkap untuk manajemen chat server.',tags:['Chat','AI Moderation','MiniMessage','35% SALE'],feats:['AI Moderation','MiniMessage','Chat Filter','Per-World Chat','Local Chat','Spy Mode','Private Message','Channel System']},
+  {icon:'🎮',name:'ChatGames',badge:'ENTERTAINMENT',version:'1.8 - 1.21.x',price:'10K',desc:'Plugin hiburan chat terbaik! 19+ mini games langsung di chat server untuk membuat pemain betah.',tags:['Mini Games','Chat','19+ Games','Fun'],feats:['19+ Games','Trivia','Math Quiz','Word Scramble','Fill in Blank','Rewards','Custom Questions','Leaderboard']},
+  {icon:'🏆',name:'UltimateRewards',badge:'REWARDS',version:'1.13 - 26.1.2',price:'10K',desc:'Sistem reward paling fleksibel. 20+ tipe reward tersedia, mendukung Folia, dan kompatibel dengan plugin lainnya.',tags:['Rewards','20+ Types','Folia','1.26.x'],feats:['20+ Reward Types','Folia Support','GUI Editor','Conditions','Random Rewards','Daily Rewards','Item Rewards','Command Rewards']},
+  {icon:'🧑',name:'Citizens',badge:'NPC',version:'1.8 - 1.21.x',price:'25K',desc:'Plugin NPC paling populer untuk Minecraft. Buat NPC custom dengan pathfinding, traits, skins, dan banyak lagi.',tags:['NPC','Traits','Pathfinding','Skins'],feats:['Custom NPCs','Pathfinding','Skins API','Traits System','Shopkeeper NPC','Quester NPC','Sentinel AI','Denizen Support']},
+  {icon:'⚔',name:'Guilds',badge:'GUILD',version:'1.8 - 1.21',price:'15K',desc:'Sistem guild ultimate untuk server SMP.',tags:['Guild','Wars','Economy','1.21'],feats:['Guild Tiers','Guild Wars','Guild Bank','Motd & Tag','Permissions','Guild Home','Leveling','Invite System']},
+  {icon:'🎰',name:'Vegas Casino',badge:'CASINO',version:'1.12 - 26.1.2',price:'20K',desc:'Plugin casino dengan 17 game mode! Blackjack, slot, roulette, dan banyak lagi.',tags:['Casino','17 Games','Economy','Fun'],feats:['17 Game Modes','Blackjack','Slot Machine','Roulette','Poker','Economy','Custom Currency','Jackpot System']},
+  {icon:'🛡',name:'Vulcan Anti-Cheat',badge:'ANTI-CHEAT',version:'1.8 - 26.1.2',price:'15K',desc:'Anti-cheat canggih dengan deteksi cheat tingkat lanjut. Mendukung Folia.',tags:['Anti-Cheat','Folia','1.26.x','Advanced'],feats:['Combat Detection','Movement Checks','Scaffold Detection','KillAura Check','Auto-ban','VPN Check','Folia Support','BungeeCord']},
+  {icon:'📦',name:'Advanced Crates',badge:'CRATES',version:'1.8 - 26.1.2',price:'30K',desc:'Plugin crate premium dengan 17 animasi unik dan in-game editor.',tags:['Crates','17 Animations','In-Game Editor','Custom Items'],feats:['17 Animations','In-Game Editor','Custom Items','Hologram','Preview GUI','NexEngine','Physical Keys','Virtual Keys']},
+  {icon:'✨',name:'AdvancedEnchantments',badge:'ENCHANTS',version:'1.17 - 26.2',price:'35K',desc:'500+ custom enchantment siap pakai, plus buat enchantment sendiri.',tags:['500+ Enchants','Custom','GUI Editor'],feats:['500+ Enchants','Custom Enchants','GUI Editor','Enchant Table','Tinkerer','Alchemist','Custom Scrolls','Whitescrolls']},
+  {icon:'🛒',name:'ShopGUI+',badge:'SHOP',version:'1.8 - 1.21',price:'15K',desc:'Plugin shop GUI terbaik dan paling populer.',tags:['Shop','GUI','Economy','Popular'],feats:['Custom Shop GUI','Buy/Sell','Economy Support','Item Groups','NBT Support','Permission Shops','Price Multiplier','Stock System']},
+  {icon:'🌍',name:'Ouranos World Gen',badge:'WORLD GEN',version:'1.19.4+',price:'20K',desc:'World dan city generator premium.',tags:['World Gen','Cities','Biomes','Structures'],feats:['City Generation','Custom Villages','Custom Biomes','Structures','Terrain Config','Ore Config','Cave Config','Multi World']},
+  {icon:'🌐',name:'Iris Dimension Engine',badge:'WORLD GEN',version:'1.16 - 1.21',price:'20K',desc:'Engine dimensi canggih untuk generate dunia custom.',tags:['Dimension Engine','Custom World','Performance'],feats:['Custom Dimensions','Terrain Engine','Cave Systems','Biome Blending','Structure API','High Performance','Studio Editor','Pack System']},
+  {icon:'📜',name:'BattlePass',badge:'QUEST',version:'1.17 - 26.2',price:'25K',desc:'Sistem battlepass lengkap dengan 50+ quests dan unlimited kustomisasi.',tags:['BattlePass','50+ Quests','GUI Editor','Seasons'],feats:['50+ Quests','Unlimited Quests','GUI Editor','Premium/Free Tier','Season System','Daily Quests','Weekly Quests','Reward Tiers']},
+  {icon:'💰',name:'BountyHunters',badge:'BOUNTY',version:'1.8 - 1.21',price:'15K',desc:'Sistem bounty hunter dengan GUI, level, reward, dan leaderboard.',tags:['Bounty','GUI','Leaderboard','PvP'],feats:['Bounty System','GUI Interface','Hunter Levels','Reward System','Leaderboard','Discord Webhook','Heads Drop','Death Messages']},
+  {icon:'💎',name:'EcoEnchants',badge:'ENCHANTS',version:'1.17 - 1.21',price:'25K',desc:'250+ enchantment premium dengan support CMI/Essentials.',tags:['250+ Enchants','CMI Support','Custom'],feats:['250+ Enchants','Custom Enchants','CMI/Essentials','Anvil Combine','Enchant Table','Scrolls','Wildcard Enchants','Conditions']},
+  {icon:'💵',name:'EconomyShopGUI Premium',badge:'SHOP',version:'1.8 - 1.21',price:'15K',desc:'Shop GUI premium dengan fitur lengkap dan UI yang bersih.',tags:['Shop','Economy','Premium','GUI'],feats:['Buy/Sell GUI','Multiple Economy','Stock System','Admin Shop','Player Shop','Price History','Category System','Search Feature']},
+];
+const packs=[
+  {icon:'⚡',name:'Solo Leveling Rank Pack',badge:'RANK PACK',version:'ItemsAdder + Geyser',price:'30K',desc:'100+ rank icon bergaya Solo Leveling. Kompatibel dengan ItemsAdder dan Geyser.',tags:['ItemsAdder','Geyser','100+ Ranks','Solo Leveling'],feats:['100+ Rank Icons','Solo Leveling Theme','ItemsAdder','Geyser Support','Custom Textures','Bedrock Support','TAB Integration','CMI Integration']},
+  {icon:'🏷',name:'WellSetups Rank Pack',badge:'RANK PACK',version:'20+ Ranks',price:'15K',desc:'Pack rank siap pakai dengan 20+ desain rank premium.',tags:['Rank Pack','20+ Ranks','Ready to Use','Premium'],feats:['20+ Rank Designs','Easy Setup','LuckPerms Ready','CMI Ready','TAB Ready','Custom Icons','Unique Designs','Config Included']},
+  {icon:'🛒',name:'ShopGUI+ Custom GUI',badge:'GUI PACK',version:'ShopGUI+ 1.8-1.21',price:'10K',desc:'Custom GUI pack untuk ShopGUI+. Desain toko yang menarik dan mudah diinstall.',tags:['ShopGUI+','Custom GUI','Ready to Use','GUI Pack'],feats:['Custom Design','Easy Install','ShopGUI+ Ready','Category Icons','Background Texture','Color Theme','Config Included','Mobile Friendly']},
+];
+const bundles=[
+  {name:'Starter Bundle',sub:'Hosting Paper 2GB + CMI',includes:['Hosting Paper 2GB RAM','1 Core CPU','Plugin CMI (300+ Commands)','Free Setup & Install'],orig:'65K',price:'55K',save:'10K',icon:'🚀',bc:'bv'},
+  {name:'Basic Bundle',sub:'Hosting Paper 4GB + CMI + ShopGUI+',includes:['Hosting Paper 4GB RAM','2 Core CPU','Plugin CMI','Plugin ShopGUI+','Free Setup & Install'],orig:'90K',price:'75K',save:'15K',icon:'⚡',bc:'bo'},
+  {name:'Pro Bundle',sub:'Hosting Paper 6GB + CMI + Lands + ShopGUI+',includes:['Hosting Paper 6GB RAM','4 Core CPU','Plugin CMI','Plugin Lands','Plugin ShopGUI+','Free Setup & Install'],orig:'150K',price:'125K',save:'25K',icon:'🔥',bc:'bp'},
+  {name:'Ultimate Bundle',sub:'Hosting Paper 8GB + CMI + Lands + Advanced Crates + BattlePass',includes:['Hosting Paper 8GB RAM','4 Core CPU','Plugin CMI','Plugin Lands','Advanced Crates','BattlePass','Free Setup & Install'],orig:'235K',price:'190K',save:'45K',icon:'👑',bc:'bv'},
+  {name:'Elite Bundle',sub:'Hosting Paper 12GB + CMI + Lands + AdvancedEnchants + Vulcan',includes:['Hosting Paper 12GB RAM','6 Core CPU','Plugin CMI','Plugin Lands','AdvancedEnchantments','Vulcan Anti-Cheat','Free Setup','Free Data Backup'],orig:'295K',price:'240K',save:'55K',icon:'💎',bc:'bg'},
+];
+const jasaItems=[
+  {icon:'⚡',name:'Optimasi Server Full',desc:'Optimasi Paper, Purpur, JVM flags, chunk loading, mob limits, anti-xray untuk TPS stabil.',price:'10K',tags:['Paper','Purpur','TPS','JVM'],feats:['Paper Config','JVM Flags','Chunk Optimization','Mob Limits','Anti-Xray','Performance Tuning']},
+  {icon:'🔓',name:'Open Firewall',desc:'Konfigurasi firewall, buka/tutup port spesifik, dan setup UFW/iptables di VPS.',price:'5K',tags:['Firewall','UFW','iptables','VPS'],feats:['Port Config','UFW Setup','iptables Rules','DDoS Basic','IP Whitelist','Security Check']},
+  {icon:'🧩',name:'Setup Plugin + In-Game',desc:'Setup dan konfigurasi plugin sesuai request, termasuk konfigurasi in-game seperti kits, ranks, economy.',price:'5K - 100K',tags:['Plugin Setup','In-Game Config','Custom','Request'],feats:['Plugin Config','In-Game Setup','Economy Config','Rank Setup','Kit Config','Menu Setup']},
+  {icon:'🔧',name:'Create Plugin',desc:'Pembuatan plugin custom sesuai request. Fitur bebas, harga menyesuaikan kompleksitas.',price:'5K - 200K',tags:['Custom Plugin','Java','Request','Development'],feats:['Custom Features','Spigot/Paper API','Command System','GUI System','Economy Hook','Free Revision']},
+  {icon:'🎨',name:'Custom GUI',desc:'Pembuatan custom GUI in-game sesuai keinginan. Menu, shop, crate preview, rank selector, dll.',price:'5K - 200K',tags:['GUI','Custom','ChestCommands','DeluxeMenus'],feats:['Custom Menu Design','Item Config','Permission Based','Economy Hook','Animated GUI','Free Revision']},
+  {icon:'💎',name:'Custom Item',desc:'Pembuatan custom item dengan model 3D, texture, nama, lore, dan attribute khusus.',price:'5K - 200K',tags:['Custom Item','ItemsAdder','Oraxen','3D Model'],feats:['Custom Texture','3D Model','Custom Name','Custom Lore','Attributes','ItemsAdder/Oraxen']},
+];
+const maps=[
+  {emoji:'🏰',name:'Medieval Kingdom',tag:'SURVIVAL',desc:'Peta kerajaan medieval epic dengan castle, villages, dan dungeon tersembunyi.',price:'15K',feats:['Castle','Villages','Dungeons','Custom Terrain']},
+  {emoji:'🌋',name:'Volcanic Island',tag:'SURVIVAL',desc:'Pulau vulkanik dengan lava pools dan landscape dramatis.',price:'10K',feats:['Volcano','Lava Caves','Island Terrain','Custom Biome']},
+  {emoji:'🏙',name:'Modern City',tag:'CREATIVE',desc:'Kota modern dengan gedung-gedung tinggi dan detail realistis.',price:'20K',feats:['Skyscrapers','Roads','Parks','Interior']},
+  {emoji:'🌊',name:'Atlantis Underwater',tag:'ADVENTURE',desc:'Kota bawah laut dengan arsitektur megah dan coral reef.',price:'18K',feats:['Underwater City','Coral Reef','Ruins','Secret Areas']},
+  {emoji:'🌌',name:'Space Station',tag:'SCI-FI',desc:'Stasiun luar angkasa futuristik dengan hangar dan lab.',price:'22K',feats:['Space Theme','Hangars','Lab Rooms','Galaxy View']},
+  {emoji:'🌿',name:'Jungle Temple',tag:'ADVENTURE',desc:'Kuil hutan dengan puzzle, traps, dan loot tersembunyi.',price:'12K',feats:['Jungle Terrain','Temple','Puzzles','Hidden Loot']},
+];
+function paperFeats(p){return['Crossplay Java-Bedrock','Free Setup','NVMe SSD','Anti Lag','Full Access Panel',...(p.x?['Free Data Backup']:[])]}
+function bedrockFeats(p){return['NVMe SSD','DDoS Protection','Full Access Panel',...(p.x?['Free Data Backup']:[])]}
+function hostingCard(p,type){const feats=type==='Bedrock'?bedrockFeats(p):paperFeats(p);const oc=`openHosting('${type}','${p.ram}','${p.core}','${p.price}',${JSON.stringify(feats)})`;return`<div class="card" onclick="${oc}"><div class="badge ${p.bc}">${p.badge}</div><h3>${p.ram} RAM</h3><div class="core">${p.core} Core CPU</div><div class="price">${p.price}</div><div class="features">${feats.slice(0,4).map(f=>`<div>${f}</div>`).join('')}</div><button class="card-btn rpl" onclick="event.stopPropagation();${oc}">Buy Now →</button></div>`;}
+function pluginCard(p,i){return`<div class="plugin-card" onclick="openPlugin(${i})"><span class="plugin-icon">${p.icon}</span><div class="ver">🔖 ${p.version}</div><h3>${p.name}</h3><p class="pdesc">${p.desc.slice(0,72)}...</p><div class="plugin-price">Rp ${p.price}</div><button class="card-btn rpl" style="margin-top:14px" onclick="event.stopPropagation();openPlugin(${i})">Detail & Buy →</button></div>`;}
+function packCard(p,i){return`<div class="pack-card" onclick="openPack(${i})"><span class="pack-icon">${p.icon}</span><div class="pver">🏷 ${p.version}</div><h3>${p.name}</h3><p class="pdes">${p.desc.slice(0,72)}...</p><div class="pack-price">Rp ${p.price}</div><button class="card-btn rpl" style="margin-top:14px;background:linear-gradient(90deg,#ec4899,#9333ea)" onclick="event.stopPropagation();openPack(${i})">Detail & Buy →</button></div>`;}
+function bundleCard(b,i){return`<div class="bundle-card" onclick="openBundle(${i})"><div class="btag">${b.icon} BUNDLE</div><h3>${b.name}</h3><div class="bsub">${b.sub}</div><div class="bundle-includes">${b.includes.map(x=>`<div class="bi">${x}</div>`).join('')}</div><div class="bundle-orig">Normal: Rp ${b.orig}</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px"><div class="bundle-price">Rp ${b.price}</div><span class="bundle-save">Hemat ${b.save}</span></div><button class="card-btn rpl" style="margin-top:16px" onclick="event.stopPropagation();openBundle(${i})">Order Bundle →</button></div>`;}
+function jasaCard(j,i){return`<div class="jasa-card" onclick="openJasa(${i})"><h3>${j.icon} ${j.name}</h3><p>${j.desc}</p><div class="jasa-price">Rp ${j.price}</div><button class="card-btn rpl" style="margin-top:14px" onclick="event.stopPropagation();openJasa(${i})">Order Sekarang →</button></div>`;}
+function mapCard(m,i){return`<div class="map-card" onclick="openMap(${i})"><div class="map-thumb">${m.emoji}</div><div class="map-info"><div class="map-tag">${m.tag}</div><h3>${m.name}</h3><p class="mdesc">${m.desc}</p><div class="map-price">Rp ${m.price}</div><button class="card-btn rpl" style="margin-top:12px" onclick="event.stopPropagation();openMap(${i})">Detail & Buy →</button></div></div>`;}
+document.getElementById('paperSlider').innerHTML=paperPlans.map(p=>hostingCard(p,'Paper')).join('');
+document.getElementById('bedrockSlider').innerHTML=bedrockPlans.map(p=>hostingCard(p,'Bedrock')).join('');
+document.getElementById('pluginSlider').innerHTML=plugins.map((p,i)=>pluginCard(p,i)).join('');
+document.getElementById('packSlider').innerHTML=packs.map((p,i)=>packCard(p,i)).join('');
+document.getElementById('bundleSlider').innerHTML=bundles.map((b,i)=>bundleCard(b,i)).join('');
+document.getElementById('jasaSlider').innerHTML=jasaItems.map((j,i)=>jasaCard(j,i)).join('');
+document.getElementById('mapSlider').innerHTML=maps.map((m,i)=>mapCard(m,i)).join('');
+renderCustomProducts();
+function showModal(){const o=document.getElementById('modalOverlay');o.style.display='flex';requestAnimationFrame(()=>o.classList.add('open'));document.body.style.overflow='hidden'}
+function closeModalBtn(){const o=document.getElementById('modalOverlay');o.classList.add('closing');setTimeout(()=>{o.style.display='none';o.classList.remove('open','closing');document.body.style.overflow=''},320)}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalBtn()}
+function buildModal({icon,badge,title,price,desc,tags,feats}){
+  document.getElementById('mIcon').textContent=icon;document.getElementById('mBadge').textContent=badge;
+  document.getElementById('mTitle').textContent=title;document.getElementById('mPrice').textContent='Rp '+price;
+  document.getElementById('mDesc').textContent=desc;
+  document.getElementById('mTags').innerHTML=tags.map(t=>`<span class="modal-tag">${t}</span>`).join('');
+  document.getElementById('mFeats').innerHTML=feats.map(f=>`<div class="modal-feat">${f}</div>`).join('');
+  currentWAText=`Halo min, saya mau beli ${badge} - ${title} seharga ${price}`;showModal();
+}
+function openPlugin(i){const p=plugins[i];buildModal({icon:p.icon,badge:p.badge,title:p.name,price:p.price,desc:p.desc,tags:p.tags,feats:p.feats})}
+function openPack(i){const p=packs[i];buildModal({icon:p.icon,badge:p.badge,title:p.name,price:p.price,desc:p.desc,tags:p.tags,feats:p.feats})}
+function openMap(i){const m=maps[i];buildModal({icon:m.emoji,badge:'MAP - '+m.tag,title:m.name,price:m.price,desc:m.desc,tags:[m.tag,'Minecraft Map','Ready to Use'],feats:m.feats})}
+function openJasa(i){const j=jasaItems[i];buildModal({icon:j.icon,badge:'JASA SETUP',title:j.name,price:j.price,desc:j.desc,tags:j.tags,feats:j.feats});currentWAText=`Halo min, saya mau order jasa: ${j.name} (${j.price})`}
+function openBundle(i){const b=bundles[i];buildModal({icon:b.icon,badge:'BUNDLE PACKAGE',title:b.name,price:b.price,desc:`Paket bundle hemat: ${b.sub}. Harga normal Rp ${b.orig}, hemat Rp ${b.save}!`,tags:['Bundle','Hosting','Plugin','Hemat '+b.save],feats:b.includes});currentWAText=`Halo min, saya mau beli Bundle: ${b.name} seharga ${b.price}`}
+function openHosting(type,ram,core,price,feats){buildModal({icon:type==='Bedrock'?'📱':'🖥',badge:'HOSTING '+type.toUpperCase(),title:`${ram} RAM — ${core} Core`,price:price,desc:`Paket hosting Minecraft ${type} dengan ${ram} RAM dan ${core} Core CPU. Performa stabil, NVMe SSD, dan support 24/7.`,tags:[type,'NVMe SSD','AMD EPYC','Pterodactyl','24/7 Support'],feats:feats});currentWAText=`Halo min, saya mau beli Hosting ${type} ${ram} ${core} Core seharga ${price}`;}
+function buyNow(){window.open(`https://wa.me/${WA}?text=${encodeURIComponent(currentWAText)}`,'_blank')}
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.rpl');if(!btn)return;
+  const r=document.createElement('span');r.className='rp';
+  const rect=btn.getBoundingClientRect();const s=Math.max(rect.width,rect.height);
+  r.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-rect.left-s/2}px;top:${e.clientY-rect.top-s/2}px`;
+  btn.appendChild(r);setTimeout(()=>r.remove(),700);
+});
+const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')}),{threshold:.08});
+document.querySelectorAll('.scroll-fade').forEach(el=>obs.observe(el));
+function goTo(id){document.querySelector(id).scrollIntoView({behavior:'smooth'})}
+updateFloatBar();
+const sess=getSession();
+if(sess){
+  if(sess.status==='pending'){document.getElementById('pendingEmailShow').textContent=sess.email;showPage('pendingPage');}
+  else if(sess.role==='admin') showPage('adminPage');
+}
+</script>
+</body>
+</html>
